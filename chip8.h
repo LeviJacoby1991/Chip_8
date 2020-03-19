@@ -29,6 +29,9 @@ class chip8{
 		unsigned char VE;
 		//special register for certain opcodes
 		unsigned char VF;
+		//timers for sound and delay
+		unsigned char sound_timer;
+		unsigned char delay_timer;
 	
 	public:
 		void initialize();
