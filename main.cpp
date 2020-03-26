@@ -3,12 +3,17 @@
 #include "chip8.h"
 
 chip8 emu;
-int main(){
+int main(int argc, char **argv){
 	std::cout<<"Hello World\n";
 	//set up graphics
+	
 	//set up screen
+	
 	//initialize chip8
+	emu.initialize();
+	
 	//load game
+	emu.loadGame("Pong");
 	
 	for(;;){
 		//emulate cycle
@@ -18,6 +23,6 @@ int main(){
 			//drawGraphics();
 
 		//Store key press state (Press and Release)
-		//emu.setKeys();
+		emu.setKeys();
 	}
 }

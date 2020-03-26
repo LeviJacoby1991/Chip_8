@@ -16,7 +16,15 @@ void chip8::initialize(){
 	for(int i = 0x200; i != 4096; i++)
 		memory[i] = 0;
 }
+
+void chip8::loadGame(std::string game){
+	;
+}
+
 void chip8::emulateCycle(){
 	;
 }
 
+void chip8::setKeys(){
+	;
+}
