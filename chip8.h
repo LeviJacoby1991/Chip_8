@@ -7,7 +7,7 @@ class chip8{
 		//Memory of Chip
 		unsigned char memory[4096];
 		//stack
-		unsigned short stack[16];
+		unsigned short _stack[16];
 		//stack pointer
 		unsigned short stack_ptr;
 		//IR is a 16bit Reg that stores memory address
@@ -23,6 +23,8 @@ class chip8{
 		unsigned char delay_timer;
 		//key pad
 		unsigned char key[16];
+		//chip8 font set
+		unsigned char chip8_fontset[80];
 	
 	public:
 		void initialize();
