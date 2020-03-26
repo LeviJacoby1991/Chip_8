@@ -18,11 +18,27 @@ void chip8::initialize(){
 }
 
 void chip8::loadGame(std::string game){
-	;
+	std::string currGame = game + ".ch8";
+	std::ifstream src;
+	//open game as ifstream in binary mode
+	src.open(currGame,std::ios::in | std::ios::binary);	
+	//get file size
+	src.seekg(0, std::ios::end);
+	int filesz = (int) src.tellg();
+
+	src.seekg(0, std::ios::beg);
+
+	char buff[filesz];
+	src.read(buff, filesz);
+
+	for(int i = 0; i != filesz; i++){
+		memory[i + 512] = buff[i];
+	}
+	src.close();
 }
 
 void chip8::emulateCycle(){
-	;
+	std::cout << memory[512];
 }
 
 void chip8::setKeys(){

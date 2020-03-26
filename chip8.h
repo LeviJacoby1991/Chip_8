@@ -1,5 +1,6 @@
 #ifndef __chip8_h
 #define __chip8_h
+#include<iostream>
 #include<string>
 #include<fstream>
 class chip8{
