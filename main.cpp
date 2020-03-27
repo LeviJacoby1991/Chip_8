@@ -15,7 +15,7 @@ int main(int argc, char **argv){
 	//load game
 	emu.loadGame("Pong");
 	
-	/*for(;;){
+	for(;;){
 		//emulate cycle
 		emu.emulateCycle();
 		// draw if the draw flag is set, updates screen
@@ -24,5 +24,5 @@ int main(int argc, char **argv){
 
 		//Store key press state (Press and Release)
 		emu.setKeys();
-	}*/
+	}
 }
