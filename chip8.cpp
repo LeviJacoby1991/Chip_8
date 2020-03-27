@@ -38,7 +38,17 @@ void chip8::loadGame(std::string game){
 }
 
 void chip8::emulateCycle(){
-	std::cout << memory[512];
+	opcode = memory[PC] << 8 | memory[PC + 1];
+
+	//switch decodes the opcode and then executes it in case body
+	switch(opcode & 0xF000){
+		case 0xA000:
+			IR = opcode & 0x0FFF;
+			PC += 2;
+			break;
+		default:
+			std::cout << "Unkown opcode: " << std::hex << opcode;
+	}
 }
 
 void chip8::setKeys(){
