@@ -42,6 +42,45 @@ void chip8::emulateCycle(){
 
 	//switch decodes the opcode and then executes it in case body
 	switch(opcode & 0xF000){
+		case 0x1000: // 1NNN: Jumps to address NNN
+			break;
+		case 0x2000: // 2NNN: Calls subroutine at NNN
+			break;
+		case 0x3000: // 3XNN: skips the next instruction if VX == RR
+			break;
+		case 0x4000: // 4XNN: skips next instruction if VX != NN
+			break;
+		case 0x5000: // 5XY0: skips next instruction if VX == VY
+			break;
+		case 0x6000: // 6XNN: sets VX to NN (VX = NN)
+			break;
+		case 0x7000: // 7XNN: Adds NN to VX (Carry flag is not changed) 
+			break;
+		case 0x8000: //8 has multiiple instructions will need inner switch statement
+			switch(opcode & 0x000F){
+				case 0x0000: // 8XY0: sets VX to the value of VY
+					break;
+				case 0x0001: // 8XY1: set VX to VX or VY (Bitwise OR)
+					break;
+				case 0x0002: // 8XY2: set VX to VX and VY (Bitwise AND)
+					break;
+				case 0x0003: // 8XY3: sets VX to VX xor VY
+					break;
+				case 0x0004: // 8XY4: adds VY to VX and sets VF to 1 if theres a carry and 0 otherwise
+					break;
+				case 0x0005: // 8XY5: Subtracts VY from VX VF is set to 0 when theres a borrow and 1 otherwise
+					break;
+				case 0x0006: // 8XY6: Store the least significant bit of VX in VF and shift VX to the right by 1
+					break;
+				case 0x0007: // 8XY7: Sets VX to VY minus VX. VF is set to 0 when theres a borrow and 1 when there isn't
+					break;
+				case 0x000E: // 8XYE: Stores the most significant bit of VX in VF and shifts VX to the left by 1
+				default:
+					std::cout << "Unknown opcode " << std::hex << opcode;
+			}
+			break;
+		case 0x9000:
+			break;
 		case 0xA000: // ANNN: Sets IR to the Adress NNN
 			//execute
 			IR = opcode & 0x0FFF;
@@ -51,7 +90,16 @@ void chip8::emulateCycle(){
 			//execute
 			PC = V[0] ^ (opcode & 0xFFF);
 			break;
-		//in the event we cant rely on the first four bits to see what the opcode means
+		case 0xC000: // CXNN: Sets VX to the result of a bitwise AND operation on a random number (0 to 255) and NN
+			break;
+		case 0xD000: // DXYN draws a sprite at cord (VX, VY), had width of 8 pixels and height of N pixels see wiki for a more detailed explanation
+			break;
+		case 0xE000: // Need inner switch Statement
+
+			break;
+		case 0xF000: // Need inner switch Statement
+
+			break;
 		case 0x0000:
 			switch(opcode & 0x000F){
 				case 0x0000: // 0x00E0: Clears the Screen
