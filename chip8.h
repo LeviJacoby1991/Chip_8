@@ -16,7 +16,7 @@ class chip8{
 		//registers
 		unsigned char V[16];
 		//graphics system
-		unsigned char gfx[64 * 32];
+		unsigned char gfx[65 * 32];
 		//timers
 		unsigned char sound_timer;
 		unsigned char delay_timer;
