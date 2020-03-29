@@ -42,12 +42,40 @@ void chip8::emulateCycle(){
 
 	//switch decodes the opcode and then executes it in case body
 	switch(opcode & 0xF000){
-		case 0xA000:
+		case 0xA000: // ANNN: Sets IR to the Adress NNN
+			//execute
 			IR = opcode & 0x0FFF;
 			PC += 2;
 			break;
+		case 0xB000: // BNNN: Jumps to adress NNN plus V0;
+			//execute
+			PC = V[0] ^ (opcode & 0xFFF);
+			break;
+		//in the event we cant rely on the first four bits to see what the opcode means
+		case 0x0000:
+			switch(opcode & 0x000F){
+				case 0x0000: // 0x00E0: Clears the Screen
+					//execute
+					PC += 2;
+					break;
+				case 0x000E: // 0x00EE: Returns from sub-routine
+					//execute
+					PC += 2;
+					break;
+				default:
+					std::cout << "Unkown opcode " << std::hex << opcode;
+			}
 		default:
 			std::cout << "Unkown opcode: " << std::hex << opcode;
+	}
+
+	if(delay_timer > 0)
+		--delay_timer;
+	if(sound_timer > 0){
+		if(sound_timer == 1){
+			//sound is played
+		}
+		--sound_timer;
 	}
 }
 
