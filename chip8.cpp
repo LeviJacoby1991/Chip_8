@@ -41,38 +41,98 @@ void chip8::emulateCycle(){
 	opcode = memory[PC] << 8 | memory[PC + 1];
 
 	//switch decodes the opcode and then executes it in case body
+	
+	//Variables
+	// NN is lower 8 its of opcode
+	// X is bits 4 - 8 (big endian)
+	// Y is bits 9 - 13 (big endian)
+	unsigned char reg_num = 0x00;
+	unsigned char NN = 0x00;
+	unsigned char X = 0x00;
+	unsigned char Y = 0x00;
+
 	switch(opcode & 0xF000){
 		case 0x1000: // 1NNN: Jumps to address NNN
+			PC = opcode & 0x000F;
 			break;
 		case 0x2000: // 2NNN: Calls subroutine at NNN
+			++stack_ptr;
+			_stack[stack_ptr] = PC;
+			PC = opcode & 0x000F;
 			break;
 		case 0x3000: // 3XNN: skips the next instruction if VX == RR
+			reg_num = (opcode & 0x0F00) >> 8;
+			NN = opcode & 0x00FF;
+			if(V[reg_num] == NN){
+				PC += 4;
+			}else{
+				PC += 2;
+			}
 			break;
 		case 0x4000: // 4XNN: skips next instruction if VX != NN
+			reg_num = (opcode & 0x0F00) >> 8;
+			NN = opcode & 0x00FF;
+			if(V[reg_num] != NN)
+				PC += 4;
+			else
+				PC += 2;
 			break;
 		case 0x5000: // 5XY0: skips next instruction if VX == VY
+			X = (opcode & 0x0F00) >> 8;
+			Y = (opcode & 0x00F0) >> 4;
+			if( X == Y)
+				PC += 4;
+			else
+				PC += 2;
 			break;
 		case 0x6000: // 6XNN: sets VX to NN (VX = NN)
+			X = (opcode & 0x0F00) >> 8;
+			NN = (opcode & 0x00FF);
+			V[X] = NN;
+			PC += 2;
 			break;
 		case 0x7000: // 7XNN: Adds NN to VX (Carry flag is not changed) 
+			X = (opcode & 0x0F00) >> 8;
+			NN = (opcode & 0x00FF);
+			V[X] += NN;
 			break;
 		case 0x8000: //8 has multiiple instructions will need inner switch statement
 			switch(opcode & 0x000F){
 				case 0x0000: // 8XY0: sets VX to the value of VY
+					X = (opcode & 0x0F00) >> 8;
+					Y = (opcode & 0x00F0) >> 4;
+					V[X] = V[Y];
 					break;
 				case 0x0001: // 8XY1: set VX to VX or VY (Bitwise OR)
+					X = (opcode & 0x0F00) >> 8;
+					Y = (opcode & 0x00F0) >> 4;
+					V[X] = V[X] | V[Y];
 					break;
 				case 0x0002: // 8XY2: set VX to VX and VY (Bitwise AND)
+					X = (opcode & 0x0F00) >> 8;
+					Y = (opcode & 0x00F0) >> 4;
+					V[X] = V[X] & V[Y];
 					break;
 				case 0x0003: // 8XY3: sets VX to VX xor VY
+					X = (opcode & 0x0F00) >> 8;
+					Y = (opcode & 0x00F0) >> 4;
+					V[X] = V[X] ^ V[Y];
 					break;
 				case 0x0004: // 8XY4: adds VY to VX and sets VF to 1 if theres a carry and 0 otherwise
+					X = (opcode & 0x0F00) >> 8;
+					Y = (opcode & 0x00F0) >> 4;
 					break;
 				case 0x0005: // 8XY5: Subtracts VY from VX VF is set to 0 when theres a borrow and 1 otherwise
+					X = (opcode & 0x0F00) >> 8;
+					Y = (opcode & 0x00F0) >> 4;
 					break;
 				case 0x0006: // 8XY6: Store the least significant bit of VX in VF and shift VX to the right by 1
+					X = (opcode & 0x0F00) >> 8;
+					Y = (opcode & 0x00F0) >> 4;
 					break;
 				case 0x0007: // 8XY7: Sets VX to VY minus VX. VF is set to 0 when theres a borrow and 1 when there isn't
+					X = (opcode & 0x0F00) >> 8;
+					Y = (opcode & 0x00F0) >> 4;
 					break;
 				case 0x000E: // 8XYE: Stores the most significant bit of VX in VF and shifts VX to the left by 1
 				default:
@@ -88,7 +148,7 @@ void chip8::emulateCycle(){
 			break;
 		case 0xB000: // BNNN: Jumps to adress NNN plus V0;
 			//execute
-			PC = V[0] ^ (opcode & 0xFFF);
+			PC = V[0] + (opcode & 0x0FFF);
 			break;
 		case 0xC000: // CXNN: Sets VX to the result of a bitwise AND operation on a random number (0 to 255) and NN
 			break;
@@ -103,11 +163,14 @@ void chip8::emulateCycle(){
 		case 0x0000:
 			switch(opcode & 0x000F){
 				case 0x0000: // 0x00E0: Clears the Screen
-					//execute
+					for(auto i : gfx)
+						i = 0;
 					PC += 2;
 					break;
 				case 0x000E: // 0x00EE: Returns from sub-routine
 					//execute
+					PC = stack_ptr;
+					--stack_ptr;
 					PC += 2;
 					break;
 				default:
