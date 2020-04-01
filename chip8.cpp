@@ -235,18 +235,35 @@ void chip8::emulateCycle(){
 				case 0x001E: // FX1E set IR to IR + VX
 					X = (opcode & 0x0F00) >> 8;
 					IR = IR + V[X];
+					if(IR + V[X] > 0xFF)
+						V[0xF] = 1;
+					else
+						V[0xF] = 0;
 					PC += 2;
 					break;
 				case 0x0029: // FX29: set I to the location of sprite for digit VX 
+					X = (opcode & 0x0F00) >> 8;
+					IR = gfx[ V[X] ];
 					PC += 2;
 					break;
 				case 0x0033: // FX33: store BCD representation of VX in memory locations I, I+1, I+2;
+					X = (opcode & 0x0F00) >> 8;
+					memory[IR] = V[X]; // holds hundreds digit
+					memory[IR + 1] = V[X]; // holds tens digit
+					memory[IR + 2] = V[X]; // holds ones digit
 					PC += 2;
 					break;
 				case 0x0055: // FX55 Stores registers V0 through VX in memory starting at location I
+					X = opcode & 0x0F00;
+					for(auto i = 0; i != X + 1; i++){
+						memory[IR + i] = V[i];
+					}
 					PC += 2;
 					break;
 				case 0x0065: // FX65 Reads registers values from memory starting at the locaiton I into V0 to VX
+					for(auto i = 0; i != X + 1; i++){
+						V[i] = memory[IR + i];
+					}
 					PC += 2;
 					break;
 				default:
