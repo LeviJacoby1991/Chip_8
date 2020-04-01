@@ -95,6 +95,7 @@ void chip8::emulateCycle(){
 			X = (opcode & 0x0F00) >> 8;
 			NN = (opcode & 0x00FF);
 			V[X] += NN;
+			PC += 2;
 			break;
 		case 0x8000: //8 has multiiple instructions will need inner switch statement
 			switch(opcode & 0x000F){
@@ -102,44 +103,86 @@ void chip8::emulateCycle(){
 					X = (opcode & 0x0F00) >> 8;
 					Y = (opcode & 0x00F0) >> 4;
 					V[X] = V[Y];
+					PC += 2;
 					break;
 				case 0x0001: // 8XY1: set VX to VX or VY (Bitwise OR)
 					X = (opcode & 0x0F00) >> 8;
 					Y = (opcode & 0x00F0) >> 4;
 					V[X] = V[X] | V[Y];
+					PC += 2;
 					break;
 				case 0x0002: // 8XY2: set VX to VX and VY (Bitwise AND)
 					X = (opcode & 0x0F00) >> 8;
 					Y = (opcode & 0x00F0) >> 4;
 					V[X] = V[X] & V[Y];
+					PC += 2;
 					break;
 				case 0x0003: // 8XY3: sets VX to VX xor VY
 					X = (opcode & 0x0F00) >> 8;
 					Y = (opcode & 0x00F0) >> 4;
 					V[X] = V[X] ^ V[Y];
+					PC += 2;
 					break;
 				case 0x0004: // 8XY4: adds VY to VX and sets VF to 1 if theres a carry and 0 otherwise
 					X = (opcode & 0x0F00) >> 8;
 					Y = (opcode & 0x00F0) >> 4;
+					if( V[X] + V[Y] > 0xFF){
+						V[0x000F] = 1;
+						V[X] = V[X] + V[Y];
+					}else{
+						V[0x000F] = 0;
+						V[X] = V[X] + V[Y];
+					}
+					PC += 2;
 					break;
 				case 0x0005: // 8XY5: Subtracts VY from VX VF is set to 0 when theres a borrow and 1 otherwise
 					X = (opcode & 0x0F00) >> 8;
 					Y = (opcode & 0x00F0) >> 4;
+					if(V[Y] > V[X]){
+						V[X] = V[X] - V[Y];
+						V[0x000F] = 0;
+					}else{
+						V[X] = V[X] - V[Y];
+						V[0x000F] = 1;
+					}
+					PC += 2;
 					break;
 				case 0x0006: // 8XY6: Store the least significant bit of VX in VF and shift VX to the right by 1
 					X = (opcode & 0x0F00) >> 8;
 					Y = (opcode & 0x00F0) >> 4;
+					V[0x000F] = (V[X] << 7) >> 7;
+					V[X] = V[X] >> 1;
+					PC += 2;
 					break;
 				case 0x0007: // 8XY7: Sets VX to VY minus VX. VF is set to 0 when theres a borrow and 1 when there isn't
 					X = (opcode & 0x0F00) >> 8;
 					Y = (opcode & 0x00F0) >> 4;
+					if(V[X] > V[Y]){
+						V[X] = V[Y] - V[X];
+						V[0x000F] = 0;
+					}else{
+						V[X] = V[Y] - V[X];
+						V[0x000F] = 1;
+					}
+					PC += 2;
 					break;
 				case 0x000E: // 8XYE: Stores the most significant bit of VX in VF and shifts VX to the left by 1
+					X = (opcode & 0x0F00) >> 8;
+					Y = (opcode & 0x00F0) >> 4;
+					V[0x000F] = V[X] >> 7;
+					V[X] = V[X] >> 1;
+					PC += 2;
 				default:
 					std::cout << "Unknown opcode " << std::hex << opcode;
 			}
 			break;
-		case 0x9000:
+		case 0x9000: // 9XY0: Skip next instruction if VX != VY
+			X = (opcode & 0x0F00) >> 8;
+			Y = (opcode & 0x00F0) >> 4;
+			if(V[X] != V[Y])
+				PC += 4;
+			else
+				PC += 2;
 			break;
 		case 0xA000: // ANNN: Sets IR to the Adress NNN
 			//execute
@@ -148,17 +191,67 @@ void chip8::emulateCycle(){
 			break;
 		case 0xB000: // BNNN: Jumps to adress NNN plus V0;
 			//execute
-			PC = V[0] + (opcode & 0x0FFF);
+			PC = V[0x0000] + (opcode & 0x0FFF);
 			break;
 		case 0xC000: // CXNN: Sets VX to the result of a bitwise AND operation on a random number (0 to 255) and NN
+			PC += 2;
 			break;
 		case 0xD000: // DXYN draws a sprite at cord (VX, VY), had width of 8 pixels and height of N pixels see wiki for a more detailed explanation
+			PC += 2;
 			break;
 		case 0xE000: // Need inner switch Statement
-
+			switch(opcode & 0x00FF){
+				case 0x009E:
+					PC += 2;
+					break;
+				case 0x00A1:
+					PC += 2;
+					break;
+				default:
+					std::cout << "Unknown opcode " << std::hex << opcode;
+			}
 			break;
 		case 0xF000: // Need inner switch Statement
-
+			switch(opcode & 0x00FF){
+				case 0x0007: // FX07: set VX = delay timer
+					X = (opcode & 0x0F00) >> 8;
+					V[X] = delay_timer;
+					PC += 2;
+					break;
+				case 0x000A: // FX0A store the value of the k in VX
+					X = (opcode & 0x0F00) >> 8;
+					PC += 2;
+					break;
+				case 0x0015: // FX15 store the value in VX in the delay timer
+					X = (opcode & 0x0F00) >> 8;
+					delay_timer = V[X];
+					PC += 2;
+					break;
+				case 0x0018: // FX18 set sound_timer to VX
+					X = (opcode & 0x0F00) >> 8;
+					sound_timer = V[X];
+					PC += 2;
+					break;
+				case 0x001E: // FX1E set IR to IR + VX
+					X = (opcode & 0x0F00) >> 8;
+					IR = IR + V[X];
+					PC += 2;
+					break;
+				case 0x0029: // FX29: set I to the location of sprite for digit VX 
+					PC += 2;
+					break;
+				case 0x0033: // FX33: store BCD representation of VX in memory locations I, I+1, I+2;
+					PC += 2;
+					break;
+				case 0x0055: // FX55 Stores registers V0 through VX in memory starting at location I
+					PC += 2;
+					break;
+				case 0x0065: // FX65 Reads registers values from memory starting at the locaiton I into V0 to VX
+					PC += 2;
+					break;
+				default:
+					std::cout << "Unkown opcode " << std::hex << opcode;
+			}
 			break;
 		case 0x0000:
 			switch(opcode & 0x000F){
