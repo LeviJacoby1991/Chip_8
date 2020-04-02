@@ -150,7 +150,7 @@ void chip8::emulateCycle(){
 				case 0x0006: // 8XY6: Store the least significant bit of VX in VF and shift VX to the right by 1
 					X = (opcode & 0x0F00) >> 8;
 					Y = (opcode & 0x00F0) >> 4;
-					V[0x000F] = (V[X] << 7) >> 7;
+					V[0x000F] = V[X] & 0x0001;
 					V[X] = V[X] >> 1;
 					PC += 2;
 					break;
@@ -170,7 +170,7 @@ void chip8::emulateCycle(){
 					X = (opcode & 0x0F00) >> 8;
 					Y = (opcode & 0x00F0) >> 4;
 					V[0x000F] = V[X] >> 7;
-					V[X] = V[X] >> 1;
+					V[X] = V[X] << 1;
 					PC += 2;
 				default:
 					std::cout << "Unknown opcode " << std::hex << opcode;
@@ -201,10 +201,10 @@ void chip8::emulateCycle(){
 			break;
 		case 0xE000: // Need inner switch Statement
 			switch(opcode & 0x00FF){
-				case 0x009E:
+				case 0x009E: // EX9E: Skip the next instruction if the key stored in VX is pressed
 					PC += 2;
 					break;
-				case 0x00A1:
+				case 0x00A1: // EXA1: Skips the next if the key stored in VX isn't pressed
 					PC += 2;
 					break;
 				default:
@@ -236,34 +236,37 @@ void chip8::emulateCycle(){
 					X = (opcode & 0x0F00) >> 8;
 					IR = IR + V[X];
 					if(IR + V[X] > 0xFF)
-						V[0xF] = 1;
+						V[0xF000] = 1;
 					else
-						V[0xF] = 0;
+						V[0xF000] = 0;
 					PC += 2;
 					break;
 				case 0x0029: // FX29: set I to the location of sprite for digit VX 
 					X = (opcode & 0x0F00) >> 8;
-					IR = gfx[ V[X] ];
+					IR = gfx[ V[X] ] * 0x5;
 					PC += 2;
 					break;
 				case 0x0033: // FX33: store BCD representation of VX in memory locations I, I+1, I+2;
 					X = (opcode & 0x0F00) >> 8;
-					memory[IR] = V[X]; // holds hundreds digit
-					memory[IR + 1] = V[X]; // holds tens digit
-					memory[IR + 2] = V[X]; // holds ones digit
+					memory[IR] = V[X]/100; // holds hundreds digit
+					memory[IR + 1] = (V[X]/10)%10; // holds tens digit
+					memory[IR + 2] = (V[X]%100)%10; // holds ones digit
 					PC += 2;
 					break;
 				case 0x0055: // FX55 Stores registers V0 through VX in memory starting at location I
-					X = opcode & 0x0F00;
+					X = (opcode & 0x0F00) >> 8;
 					for(auto i = 0; i != X + 1; i++){
 						memory[IR + i] = V[i];
 					}
+					IR += ((opcode & 0x0F00) >> 8) + 1;
 					PC += 2;
 					break;
 				case 0x0065: // FX65 Reads registers values from memory starting at the locaiton I into V0 to VX
+					X = (opcode & 0x0F00) >> 8;
 					for(auto i = 0; i != X + 1; i++){
 						V[i] = memory[IR + i];
 					}
+					IR += ((opcode & 0xF00) >> 8) + 1;
 					PC += 2;
 					break;
 				default:
