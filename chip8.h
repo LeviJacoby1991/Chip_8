@@ -4,6 +4,13 @@
 #include<string>
 #include<fstream>
 class chip8{
+	public:
+		void initialize();
+		void loadGame(std::string);
+		void emulateCycle();
+		void setKeys();
+		bool drawFlag;
+
 	private:
 		unsigned short opcode;
 		unsigned char memory[4096];
@@ -40,12 +47,5 @@ class chip8{
 			0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
 			0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 		};
-	
-	public:
-		void initialize();
-		void loadGame(std::string);
-		void emulateCycle();
-		void setKeys();
-		bool drawFlag;
 };
 #endif
