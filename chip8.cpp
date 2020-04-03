@@ -11,10 +11,13 @@ void chip8::initialize(){
 		i = 0;
 	for(auto i : V)
 		i = 0;
+	for(auto i : key)
+		i = 0;
 	for(int i = 0; i != 80; i++)
 		memory[i] = chip8_fontset[i];
 	for(int i = 0x200; i != 4096; i++)
 		memory[i] = 0;
+	drawFlag = true;
 }
 
 void chip8::loadGame(std::string game){
@@ -54,12 +57,12 @@ void chip8::emulateCycle(){
 	unsigned short pixel = 0x0000;
 	switch(opcode & 0xF000){
 		case 0x1000: // 1NNN: Jumps to address NNN
-			PC = opcode & 0x000F;
+			PC = opcode & 0x0FFF;
 			break;
 		case 0x2000: // 2NNN: Calls subroutine at NNN
-			++stack_ptr;
 			_stack[stack_ptr] = PC;
-			PC = opcode & 0x000F;
+			++stack_ptr;
+			PC = opcode & 0x0FFF;
 			break;
 		case 0x3000: // 3XNN: skips the next instruction if VX == RR
 			reg_num = (opcode & 0x0F00) >> 8;
@@ -200,15 +203,15 @@ void chip8::emulateCycle(){
 		case 0xD000: // DXYN draws a sprite at cord (VX, VY), had width of 8 pixels and height of N pixels see wiki for a more detailed explanation
 			X = (opcode & 0x0F00) >> 8;
 			Y = (opcode & 0x00F0) >> 4;
-			N = 0x000F; // Height of sprite
+			N = opcode & 0x000F; // Height of sprite
 			V[0x000F] = 0;
 			for(int yline = 0; yline < N; yline++){
 				pixel = memory[IR + yline];
 				for(int xline = 0; xline != 8; xline++){
 					if(pixel & (0x8000 >> xline) != 0){
-						if (gfx[(X + xline + ((Y + N) * 64))] == 1){
+						if (gfx[(V[X] + xline + ((V[Y] + yline) * 64))] == 1){
 							V[0xF000] = 1;
-							gfx[X + xline + ((Y + N) * 64 )] ^= 1;
+							gfx[V[X] + xline + ((V[Y] + yline) * 64 )] ^= 1;
 						}
 					}
 				}
@@ -227,7 +230,7 @@ void chip8::emulateCycle(){
 					break;
 				case 0x00A1: // EXA1: Skips the next if the key stored in VX isn't pressed
 					X = (opcode & 0x0F00) >> 8;
-					if(key[V[X]] != 1)
+					if(key[V[X]] == 0)
 						PC += 4;
 					else
 						PC += 2;
@@ -244,8 +247,19 @@ void chip8::emulateCycle(){
 					PC += 2;
 					break;
 				case 0x000A: // FX0A store the value of the k in VX
-					X = (opcode & 0x0F00) >> 8;
-					PC += 2;
+					{					
+						bool keyPress = false;
+						X = (opcode & 0x0F00) >> 8;
+						for(int i = 0; i != 16; ++i){
+							if(key[i] != 0){
+								V[X] = i;
+								keyPress = true;
+							}
+						}
+						if(!keyPress)
+							return;
+						PC += 2;
+					}
 					break;
 				case 0x0015: // FX15 store the value in VX in the delay timer
 					X = (opcode & 0x0F00) >> 8;
@@ -259,11 +273,11 @@ void chip8::emulateCycle(){
 					break;
 				case 0x001E: // FX1E set IR to IR + VX
 					X = (opcode & 0x0F00) >> 8;
-					IR = IR + V[X];
 					if(IR + V[X] > 0xFF)
 						V[0xF000] = 1;
 					else
 						V[0xF000] = 0;
+					IR = IR + V[X];
 					PC += 2;
 					break;
 				case 0x0029: // FX29: set I to the location of sprite for digit VX 
@@ -302,13 +316,14 @@ void chip8::emulateCycle(){
 			switch(opcode & 0x000F){
 				case 0x0000: // 0x00E0: Clears the Screen
 					for(auto i : gfx)
-						i = 0;
+						i = 0x0;
+					drawFlag = true;
 					PC += 2;
 					break;
 				case 0x000E: // 0x00EE: Returns from sub-routine
 					//execute
-					PC = stack_ptr;
 					--stack_ptr;
+					PC = _stack[stack_ptr];
 					PC += 2;
 					break;
 				default:
