@@ -50,7 +50,8 @@ void chip8::emulateCycle(){
 	unsigned char NN = 0x00;
 	unsigned char X = 0x00;
 	unsigned char Y = 0x00;
-
+	unsigned char N = 0x00;
+	unsigned short pixel = 0x0000;
 	switch(opcode & 0xF000){
 		case 0x1000: // 1NNN: Jumps to address NNN
 			PC = opcode & 0x000F;
@@ -197,15 +198,39 @@ void chip8::emulateCycle(){
 			PC += 2;
 			break;
 		case 0xD000: // DXYN draws a sprite at cord (VX, VY), had width of 8 pixels and height of N pixels see wiki for a more detailed explanation
+			X = (opcode & 0x0F00) >> 8;
+			Y = (opcode & 0x00F0) >> 4;
+			N = 0x000F; // Height of sprite
+			V[0x000F] = 0;
+			for(int yline = 0; yline < N; yline++){
+				pixel = memory[IR + yline];
+				for(int xline = 0; xline != 8; xline++){
+					if(pixel & (0x8000 >> xline) != 0){
+						if (gfx[(X + xline + ((Y + N) * 64))] == 1){
+							V[0xF000] = 1;
+							gfx[X + xline + ((Y + N) * 64 )] ^= 1;
+						}
+					}
+				}
+			}
+			drawFlag = true;
 			PC += 2;
 			break;
 		case 0xE000: // Need inner switch Statement
 			switch(opcode & 0x00FF){
 				case 0x009E: // EX9E: Skip the next instruction if the key stored in VX is pressed
-					PC += 2;
+					X = (opcode & 0x0F00) >> 8;
+					if(key[V[X]] != 0)
+						PC += 4;
+					else	
+						PC += 2;
 					break;
 				case 0x00A1: // EXA1: Skips the next if the key stored in VX isn't pressed
-					PC += 2;
+					X = (opcode & 0x0F00) >> 8;
+					if(key[V[X]] != 1)
+						PC += 4;
+					else
+						PC += 2;
 					break;
 				default:
 					std::cout << "Unknown opcode " << std::hex << opcode;
