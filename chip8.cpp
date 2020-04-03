@@ -215,8 +215,8 @@ void chip8::emulateCycle(){
 					if(pixel & (0x8000 >> xline) != 0){
 						if (gfx[(V[X] + xline + ((V[Y] + yline) * 64))] == 1){
 							V[0xF000] = 1;
-							gfx[V[X] + xline + ((V[Y] + yline) * 64 )] ^= 1;
 						}
+						gfx[V[X] + xline + ((V[Y] + yline) * 64 )] ^= 1;
 					}
 				}
 			}
