@@ -3,12 +3,17 @@
 #include<iostream>
 #include<string>
 #include<fstream>
+#include<stdio.h>
+#include<stdlib.h>
+
 class chip8{
 	public:
 		void initialize();
 		void loadGame(std::string);
 		void emulateCycle();
 		void setKeys();
+		//graphics system
+		unsigned char gfx[65 * 32];
 		bool drawFlag;
 
 	private:
@@ -22,8 +27,6 @@ class chip8{
 		unsigned short PC;
 		//registers
 		unsigned char V[16];
-		//graphics system
-		unsigned char gfx[65 * 32];
 		//timers
 		unsigned char sound_timer;
 		unsigned char delay_timer;
