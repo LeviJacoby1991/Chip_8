@@ -18,6 +18,7 @@ void chip8::initialize(){
 	for(int i = 0x200; i != 4096; i++)
 		memory[i] = 0;
 	drawFlag = true;
+	srand(time(NULL));
 }
 
 void chip8::loadGame(std::string game){
@@ -198,6 +199,9 @@ void chip8::emulateCycle(){
 			PC = V[0x0000] + (opcode & 0x0FFF);
 			break;
 		case 0xC000: // CXNN: Sets VX to the result of a bitwise AND operation on a random number (0 to 255) and NN
+			X = (opcode & 0x0F00) >> 8;
+			NN = (opcode & 0x00FF) >> 8;
+			V[X] = NN & (rand() % 0xFF00);
 			PC += 2;
 			break;
 		case 0xD000: // DXYN draws a sprite at cord (VX, VY), had width of 8 pixels and height of N pixels see wiki for a more detailed explanation
