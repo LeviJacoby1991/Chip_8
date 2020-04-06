@@ -50,7 +50,6 @@ void chip8::emulateCycle(){
 	// NN is lower 8 its of opcode
 	// X is bits 4 - 8 (big endian)
 	// Y is bits 9 - 13 (big endian)
-	unsigned char reg_num = 0x00;
 	unsigned char NN = 0x00;
 	unsigned char X = 0x00;
 	unsigned char Y = 0x00;
@@ -66,18 +65,18 @@ void chip8::emulateCycle(){
 			PC = opcode & 0x0FFF;
 			break;
 		case 0x3000: // 3XNN: skips the next instruction if VX == RR
-			reg_num = (opcode & 0x0F00) >> 8;
+			X = (opcode & 0x0F00) >> 8;
 			NN = opcode & 0x00FF;
-			if(V[reg_num] == NN){
+			if(V[X] == NN){
 				PC += 4;
 			}else{
 				PC += 2;
 			}
 			break;
 		case 0x4000: // 4XNN: skips next instruction if VX != NN
-			reg_num = (opcode & 0x0F00) >> 8;
+			X = (opcode & 0x0F00) >> 8;
 			NN = opcode & 0x00FF;
-			if(V[reg_num] != NN)
+			if(V[X] != NN)
 				PC += 4;
 			else
 				PC += 2;
@@ -85,7 +84,7 @@ void chip8::emulateCycle(){
 		case 0x5000: // 5XY0: skips next instruction if VX == VY
 			X = (opcode & 0x0F00) >> 8;
 			Y = (opcode & 0x00F0) >> 4;
-			if( X == Y)
+			if(V[X] == V[Y])
 				PC += 4;
 			else
 				PC += 2;
@@ -201,7 +200,7 @@ void chip8::emulateCycle(){
 		case 0xC000: // CXNN: Sets VX to the result of a bitwise AND operation on a random number (0 to 255) and NN
 			X = (opcode & 0x0F00) >> 8;
 			NN = (opcode & 0x00FF) >> 8;
-			V[X] = NN & (rand() % 0xFF00);
+			V[X] = NN & (rand() % 0xFF);
 			PC += 2;
 			break;
 		case 0xD000: // DXYN draws a sprite at cord (VX, VY), had width of 8 pixels and height of N pixels see wiki for a more detailed explanation
@@ -212,9 +211,9 @@ void chip8::emulateCycle(){
 			for(int yline = 0; yline < N; yline++){
 				pixel = memory[IR + yline];
 				for(int xline = 0; xline != 8; xline++){
-					if(pixel & (0x8000 >> xline) != 0){
+					if(pixel & (0x80 >> xline) != 0){
 						if (gfx[(V[X] + xline + ((V[Y] + yline) * 64))] == 1){
-							V[0xF000] = 1;
+							V[0x000F] = 1;
 						}
 						gfx[V[X] + xline + ((V[Y] + yline) * 64 )] ^= 1;
 					}
@@ -278,9 +277,9 @@ void chip8::emulateCycle(){
 				case 0x001E: // FX1E set IR to IR + VX
 					X = (opcode & 0x0F00) >> 8;
 					if(IR + V[X] > 0xFF)
-						V[0xF000] = 1;
+						V[0xF] = 1;
 					else
-						V[0xF000] = 0;
+						V[0xF] = 0;
 					IR = IR + V[X];
 					PC += 2;
 					break;
