@@ -11,9 +11,10 @@ class chip8{
 		void initialize();
 		void loadGame(std::string);
 		void emulateCycle();
-		void setKeys();
 		//graphics system
-		unsigned char gfx[65 * 32];
+		unsigned char gfx[64 * 32];
+		//registers for user input
+		unsigned char key[16];
 		bool drawFlag;
 
 	private:
@@ -31,7 +32,6 @@ class chip8{
 		unsigned char sound_timer;
 		unsigned char delay_timer;
 		//key pad
-		unsigned char key[16];
 		unsigned char chip8_fontset[80] = {
 			0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 			0x20, 0x60, 0x20, 0x20, 0x70, // 1
