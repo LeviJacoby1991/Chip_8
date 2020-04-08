@@ -346,6 +346,3 @@ void chip8::emulateCycle(){
 	}
 }
 
-void chip8::setKeys(){
-	;
-}

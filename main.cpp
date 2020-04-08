@@ -13,7 +13,8 @@ void drawChip8();
 
 chip8 emu;
 int main(int argc, char **argv){
-	
+
+	bool quit = false;
 	//SDL_Event
 	//set up screen
 	//initialize chip8
@@ -33,7 +34,7 @@ int main(int argc, char **argv){
 				drawChip8();//drawGraphics();
 
 			//Store key press state (Press and Release)
-			setKeys(/*pass in event */);
+			setkeys(/*pass in event */);
 	}
 }
 
