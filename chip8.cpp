@@ -5,40 +5,41 @@ void chip8::initialize(){
 	opcode = 0;
 	IR = 0;
 	stack_ptr = 0;
-	for(auto i : gfx)
+	for(auto &i : gfx)
+			i = 0;
+	for(auto &i : _stack)
 		i = 0;
-	for(auto i : _stack)
+	for(auto &i : V)
 		i = 0;
-	for(auto i : V)
-		i = 0;
-	for(auto i : key)
+	for(auto &i : key)
 		i = 0;
 	for(int i = 0; i != 80; i++)
 		memory[i] = chip8_fontset[i];
 	for(int i = 0x200; i != 4096; i++)
 		memory[i] = 0;
+
+	delay_timer = 0;
+	sound_timer = 0;
+
 	drawFlag = true;
 	srand(time(NULL));
 }
 
 void chip8::loadGame(std::string game){
 	std::string currGame = game + ".ch8";
-	std::ifstream src;
-	//open game as ifstream in binary mode
-	src.open(currGame,std::ios::in | std::ios::binary);	
-	//get file size
-	src.seekg(0, std::ios::end);
-	int filesz = (int) src.tellg();
-
-	src.seekg(0, std::ios::beg);
-
-	char buff[filesz];
-	src.read(buff, filesz);
-
-	for(int i = 0; i != filesz; i++){
-		memory[i + 512] = buff[i];
+	std::ifstream src (currGame, std::ifstream::binary);
+	if(src){
+		src.seekg(0, src.end);
+		int sz = src.tellg();
+		src.seekg(0, src.beg);
+		char * buffer = new char[sz];
+		src.read(buffer,sz);
+		for(int i = 0; i != sz; i++){
+			memory[0x200 + i] = buffer[i];
+		}
+		
+		delete[] buffer;
 	}
-	src.close();
 }
 
 void chip8::emulateCycle(){
@@ -47,6 +48,7 @@ void chip8::emulateCycle(){
 	//switch decodes the opcode and then executes it in case body
 	
 	//Variables
+    i += 1;
 	// NN is lower 8 its of opcode
 	// X is bits 4 - 8 (big endian)
 	// Y is bits 9 - 13 (big endian)
@@ -178,6 +180,7 @@ void chip8::emulateCycle(){
 					PC += 2;
 				default:
 					std::cout << "Unknown opcode " << std::hex << opcode;
+					break;
 			}
 			break;
 		case 0x9000: // 9XY0: Skip next instruction if VX != VY
@@ -199,7 +202,7 @@ void chip8::emulateCycle(){
 			break;
 		case 0xC000: // CXNN: Sets VX to the result of a bitwise AND operation on a random number (0 to 255) and NN
 			X = (opcode & 0x0F00) >> 8;
-			NN = (opcode & 0x00FF) >> 8;
+			NN = (opcode & 0x00FF);
 			V[X] = NN & (rand() % 0xFF);
 			PC += 2;
 			break;
@@ -209,13 +212,16 @@ void chip8::emulateCycle(){
 			N = opcode & 0x000F; // Height of sprite
 			V[0x000F] = 0;
 			for(int yline = 0; yline < N; yline++){
-				pixel = memory[IR + yline];
-				for(int xline = 0; xline != 8; xline++){
-					if(pixel & (0x80 >> xline) != 0){
-						if (gfx[(V[X] + xline + ((V[Y] + yline) * 64))] == 1){
+				for(int screenbit = 0; screenbit != 8; screenbit++){
+					//determine which pixels on screen are getting xor/set
+					pixel = memory[IR + yline];
+					if((pixel & (0x80 >> screenbit)) != 0){
+						
+						if (gfx[(V[X] + screenbit) + ((V[Y] + yline) * 64)] != 0){
 							V[0x000F] = 1;
 						}
-						gfx[V[X] + xline + ((V[Y] + yline) * 64 )] ^= 1;
+
+						gfx[(V[X] + screenbit) + ((V[Y] + yline) * 64 )] ^= 1;
 					}
 				}
 			}
@@ -240,6 +246,7 @@ void chip8::emulateCycle(){
 					break;
 				default:
 					std::cout << "Unknown opcode " << std::hex << opcode;
+					break;
 			}
 			break;
 		case 0xF000: // Need inner switch Statement
@@ -308,18 +315,22 @@ void chip8::emulateCycle(){
 					for(auto i = 0; i != X + 1; i++){
 						V[i] = memory[IR + i];
 					}
-					IR += ((opcode & 0xF00) >> 8) + 1;
+					IR +=  X + 1;
 					PC += 2;
 					break;
 				default:
+					std::cout << "Here 0xF" << "\n";
 					std::cout << "Unkown opcode " << std::hex << opcode;
+					break;
 			}
 			break;
 		case 0x0000:
 			switch(opcode & 0x000F){
 				case 0x0000: // 0x00E0: Clears the Screen
-					for(auto i : gfx)
-						i = 0x0;
+					/*for(auto &i : gfx)
+						i = 0x0;*/
+					for(int i = 0; i != 32*64; i++)
+						gfx[i] = 0;
 					drawFlag = true;
 					PC += 2;
 					break;
@@ -330,10 +341,18 @@ void chip8::emulateCycle(){
 					PC += 2;
 					break;
 				default:
-					std::cout << "Unkown opcode " << std::hex << opcode;
+					std::cout << "Here 0x0" << "\n";
+					std::cout << "Unkown opcode " << opcode << std::hex; 
+					break;
 			}
+			break;
+			
 		default:
-			std::cout << "Unkown opcode: " << std::hex << opcode;
+			std::cout << "we have not implemented the opcode\n";
+			std::cout << "Unkown opcode: 0x" << std::hex << opcode << std::endl; 
+            std::cout << " opcode encountered in cycle: " << i << "\n";
+			break;
+			
 	}
 
 	if(delay_timer > 0)

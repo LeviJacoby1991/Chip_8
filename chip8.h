@@ -12,12 +12,13 @@ class chip8{
 		void loadGame(std::string);
 		void emulateCycle();
 		//graphics system
-		unsigned char gfx[64 * 32];
+		unsigned char gfx[64*32];
 		//registers for user input
 		unsigned char key[16];
 		bool drawFlag;
 
 	private:
+        int i;
 		unsigned short opcode;
 		unsigned char memory[4096];
 		unsigned short _stack[16];
