@@ -25,10 +25,9 @@ void chip8::initialize(){
 	srand(time(NULL));
 }
 
-void chip8::loadGame(char* game){
+void chip8::loadGame(char *game){
 	std::string currGame(game);
-	currGame += ".ch8";
-	std::ifstream src (currGame, std::ifstream::binary);
+	std::ifstream src (game, std::ifstream::binary);
 	try{
 		if(!src){
 			throw std::runtime_error("File does not exist\n");

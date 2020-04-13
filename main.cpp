@@ -140,8 +140,6 @@ void setkeys(SDL_Event key_event){
 void drawChip8(){
 	//go through the chip8s graphics array and draw to the screen if
 	//SDL_SetRenderTarget(renderer, texture);
-	p.w = 10;
-	p.h = 10;
 	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
 	SDL_RenderClear(renderer);
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
@@ -149,16 +147,14 @@ void drawChip8(){
 			for(int x = 0; x != 64; x++){
 					p.x =  x*10 + p.w;
 					p.y =  y*10 + p.h;
+					p.w = 10;
+					p.h = 10;
 				if(emu.gfx[x + y*64] == 1){
 					SDL_RenderDrawRect(renderer, &p);
 					SDL_RenderFillRect(renderer, &p);
-					std::cout<< "1";
-				}else
-					std::cout << "0";
+				}
 			}
-			std::cout << "\n";
 		} 
-		std::cout << "\n";
 		SDL_RenderPresent(renderer);
 		SDL_RenderClear(renderer);
 		emu.drawFlag = false;
