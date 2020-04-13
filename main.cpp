@@ -12,29 +12,28 @@ void drawChip8();
 
 SDL_Renderer *renderer;
 SDL_Window *window;
-SDL_Surface *surface;
-SDL_Texture *texture;
 SDL_Event e;
+//representation of pixel for screen
 SDL_Rect p;
 
 chip8 emu;
 
 int main(int argc, char **argv){
-
+	
+	
 	bool quit = false;
-	//SDL_Event
-	//set up screen
 	//initialize chip8
 	emu.initialize();
 	
 	//load game
-	emu.loadGame("Pong");
+	emu.loadGame(argv[1]);
 	//initialize SDL	
 	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
-	SDL_CreateWindowAndRenderer(640, 320, SDL_WINDOW_RESIZABLE, &window, &renderer);
+	
+	SDL_CreateWindowAndRenderer(640, 480, SDL_WINDOW_RESIZABLE, &window, &renderer);
 	//texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 8, 8);
 	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-	SDL_RenderClear(renderer);
+//	SDL_RenderClear(renderer);
 	SDL_RenderPresent(renderer);
 
 	while(!quit){
@@ -62,124 +61,90 @@ int main(int argc, char **argv){
 void setkeys(SDL_Event key_event){
 	//check sdl poll event for key up or key down
 	//if key up set the corresponding key in the chip8 to 0	
-	if(key_event.type == SDL_KEYDOWN){
-		switch(key_event.key.keysym.sym){
-			case SDLK_0:
-				emu.key[0] = 1;
-				break;
-			case SDLK_1:
-				emu.key[1] = 1;
-				break;
-			case SDLK_2:
-				emu.key[2] = 1;
-				break;
-			case SDLK_3:
-				emu.key[3] = 1;
-				break;
-			case SDLK_4:
-				emu.key[4] = 1;
-				break;
-			case SDLK_q:
-				emu.key[5] = 1;
-				break;
-			case SDLK_w:
-				emu.key[6] = 1;
-				break;
-			case SDLK_e:
-				emu.key[7] = 1;
-				break;
-			case SDLK_r:
-				emu.key[8] = 1;
-				break;
-			case SDLK_a:
-				emu.key[9] = 1;
-				break;
-			case SDLK_s:
-				emu.key[10] = 1;
-				break;
-			case SDLK_d:
-				emu.key[11] = 1;
-				break;
-			case SDLK_f:
-				emu.key[12] = 1;
-				break;
-			case SDLK_j:
-				emu.key[13] = 1;
-				break;
-			case SDLK_k:
-				emu.key[14] = 1;
-				break;
-			case SDLK_l:
-				emu.key[15] = 1;
-				break;
-			default:
-				break;
-		}
-	}
-	//if key up set the corresponding in the chip8 to 1
-	if(key_event.type == SDL_KEYUP){
-		switch(key_event.key.keysym.sym){
-			case SDLK_0:
-				emu.key[0] = 0;
-				break;
-			case SDLK_1:
-				emu.key[1] = 0;
-				break;
-			case SDLK_2:
-				emu.key[2] = 0;
-				break;
-			case SDLK_3:
-				emu.key[3] = 0;
-				break;
-			case SDLK_4:
-				emu.key[4] = 0;
-				break;
-			case SDLK_q:
-				emu.key[5] = 0;
-				break;
-			case SDLK_w:
-				emu.key[6] = 0;
-				break;
-			case SDLK_e:
-				emu.key[7] = 0;
-				break;
-			case SDLK_r:
-				emu.key[8] = 0;
-				break;
-			case SDLK_a:
-				emu.key[9] = 0;
-				break;
-			case SDLK_s:
-				emu.key[10] = 0;
-				break;
-			case SDLK_d:
-				emu.key[11] = 0;
-				break;
-			case SDLK_f:
-				emu.key[12] = 0;
-				break;
-			case SDLK_j:
-				emu.key[13] = 0;
-				break;
-			case SDLK_k:
-				emu.key[14] = 0;
-				break;
-			case SDLK_l:
-				emu.key[15] = 0;
-				break;
-			default:
-				break;
-		}
-	}
+	const Uint8 *keystate = SDL_GetKeyboardState(NULL);
+	if(keystate[SDL_SCANCODE_0])
+		emu.key[0] = 1;
+	else
+		emu.key[1] = 0;
+
+	if(keystate[SDL_SCANCODE_1])
+		emu.key[1] = 1;
+	else
+		emu.key[1] = 0;
+
+	if(keystate[SDL_SCANCODE_2])
+		emu.key[2] = 1;
+	else
+		emu.key[2] = 0;
+	
+	if(keystate[SDL_SCANCODE_3])
+		emu.key[3] = 1;
+	else
+		emu.key[3] = 0;
+
+	if(keystate[SDL_SCANCODE_4])
+		emu.key[4] = 1;
+	else
+		emu.key[4] = 0;
+
+	if(keystate[SDL_SCANCODE_5])
+		emu.key[5] = 1;
+	else
+		emu.key[5] = 0;
+
+	if(keystate[SDL_SCANCODE_Q])
+		emu.key[6] = 1;
+	else
+		emu.key[6] = 0;
+
+	if(keystate[SDL_SCANCODE_E])
+		emu.key[7] = 1;
+	else
+		emu.key[7] = 0;
+
+	if(keystate[SDL_SCANCODE_E])
+		emu.key[8] = 1;
+	else
+		emu.key[8] = 0;
+
+	if(keystate[SDL_SCANCODE_R])
+		emu.key[9] = 1;
+	else
+		emu.key[9] = 0;
+
+	if(keystate[SDL_SCANCODE_A])
+		emu.key[10] = 1;
+	else
+		emu.key[10] = 0;
+
+	if(keystate[SDL_SCANCODE_D])
+		emu.key[11] = 1;
+	else
+		emu.key[12] = 1;
+
+	if(keystate[SDL_SCANCODE_F])
+		emu.key[13] = 1;
+	else
+		emu.key[13] = 0;
+
+	if(keystate[SDL_SCANCODE_J])
+		emu.key[14] = 1;
+	else
+		emu.key[14] = 0;
+
+	if(keystate[SDL_SCANCODE_K])
+		emu.key[15] = 1;
+	else
+		emu.key[15] = 0;
 }
 void drawChip8(){
 	//go through the chip8s graphics array and draw to the screen if
 	//SDL_SetRenderTarget(renderer, texture);
+	p.w = 10;
+	p.h = 10;
 	SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0x00, 0xFF);
 	SDL_RenderClear(renderer);
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-	p.w = 10;
-	p.h = 10;
 		for(int y = 0; y != 32; y++){
 			for(int x = 0; x != 64; x++){
 					p.x =  x*10 + p.w;

@@ -9,7 +9,7 @@
 class chip8{
 	public:
 		void initialize();
-		void loadGame(std::string);
+		void loadGame(char *);
 		void emulateCycle();
 		//graphics system
 		unsigned char gfx[64*32];

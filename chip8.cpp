@@ -25,20 +25,27 @@ void chip8::initialize(){
 	srand(time(NULL));
 }
 
-void chip8::loadGame(std::string game){
-	std::string currGame = game + ".ch8";
+void chip8::loadGame(char* game){
+	std::string currGame(game);
+	currGame += ".ch8";
 	std::ifstream src (currGame, std::ifstream::binary);
-	if(src){
-		src.seekg(0, src.end);
-		int sz = src.tellg();
-		src.seekg(0, src.beg);
-		char * buffer = new char[sz];
-		src.read(buffer,sz);
-		for(int i = 0; i != sz; i++){
-			memory[0x200 + i] = buffer[i];
+	try{
+		if(!src){
+			throw std::runtime_error("File does not exist\n");
+		}else{
+			src.seekg(0, src.end);
+			int sz = src.tellg();
+			src.seekg(0, src.beg);
+			char * buffer = new char[sz];
+			src.read(buffer,sz);
+			for(int i = 0; i != sz; i++){
+				memory[0x200 + i] = buffer[i];
+			}
+			
+			delete[] buffer;
 		}
-		
-		delete[] buffer;
+	}catch(std::exception &err){
+		std::cout<< "try another file\n";
 	}
 }
 
